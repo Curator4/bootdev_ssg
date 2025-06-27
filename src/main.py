@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, sys
 from markdown_to_html import markdown_to_html_node
 
 def copy_directory(source, destination):
@@ -26,7 +26,7 @@ def extract_title(markdown):
             return line.lstrip("# ")
     raise Exception("No title in document")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, base_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
     with open(from_path, "r") as f:
@@ -39,24 +39,29 @@ def generate_page(from_path, template_path, dest_path):
 
     html = template.replace("{{ Title }}", title).replace("{{ Content }}", content)
 
+
+    html = html.replace('href="/', f'href="{base_path}/')
+    html = html.replace('src="/', f'src="{base_path}/')
+
+
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     with open(dest_path, "w") as f:
         f.write(html)
 
 
-def generate_pages(src_dir, dst_dir, template_path):
+def generate_pages(src_dir, dst_dir, template_path, base_path):
     for item in os.listdir(src_dir):
         src_path = os.path.join(src_dir, item)
         dst_path = os.path.join(dst_dir, item)
 
         if os.path.isdir(src_path):
             # Recurse
-            generate_pages(src_path, dst_path, template_path)
+            generate_pages(src_path, dst_path, template_path, base_path)
 
         elif os.path.isfile(src_path) and item == "index.md":
             os.makedirs(dst_dir, exist_ok=True)
             dst_file = os.path.join(dst_dir, "index.html")
-            generate_page(src_path, template_path, dst_file)
+            generate_page(src_path, template_path, dst_file, base_path)
 
 
 def main():
@@ -64,9 +69,12 @@ def main():
     # root
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    # static -> public
+    # base path for github pages
+    base_path = sys.argv[1] if len(sys.argv) > 1 else "/"
+
+    # static -> docs
     source = os.path.join(project_root, "static")
-    destination = os.path.join(project_root, "public")
+    destination = os.path.join(project_root, "docs")
     copy_directory(source, destination)
 
     # template
@@ -74,8 +82,9 @@ def main():
 
     # content
     content = os.path.join(project_root, "content")
-    output = os.path.join(project_root, "public")
+    output = os.path.join(project_root, "docs")
 
-    generate_pages(content, output, template)
+
+    generate_pages(content, output, template, base_path)
 
 main()
