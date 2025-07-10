@@ -1,5 +1,5 @@
 # static site generator bootdev project
-my implementation of [bootdevs](https://www.boot.dev) static site generator projectt ad
+my implementation of [bootdevs](https://www.boot.dev) static site generator project
 ## pages
 find the generated html on github pages [**here**](https://curator4.github.io/bootdev_ssg/)
 ## disclaimer
